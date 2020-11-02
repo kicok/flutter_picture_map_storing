@@ -21,10 +21,25 @@ class GreatPlaces with ChangeNotifier {
     );
     _items.add(newPlace);
     notifyListeners();
-    DBHelper.insert('places', {
+    DBHelper.insert('user_places', {
       'id': newPlace.id,
       'title': newPlace.title,
       'image': newPlace.image.path // 로컬 하드 드라이브에 이미지 경로를 저장하려면 .path 가 반드시 필요
     });
+  }
+
+  Future<void> fetchandSetPlaces() async {
+    final dataList = await DBHelper.getData('user_places');
+    _items = dataList
+        .map(
+          (item) => Place(
+            id: item['id'],
+            title: item['title'],
+            image: File(item['image']),
+            location: null,
+          ),
+        )
+        .toList();
+    notifyListeners();
   }
 }
