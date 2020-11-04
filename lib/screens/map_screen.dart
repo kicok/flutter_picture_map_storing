@@ -54,13 +54,22 @@ class _MapScreenState extends State<MapScreen> {
           ),
           zoom: 16,
         ),
-        onTap: widget.isSelecting ? _selectLocation : null,
-        markers: _pickedLocation == null
+        onTap: widget.isSelecting
+            ? _selectLocation
+            : null, // 'Select on Map' 버튼을 클릭할 경우에는 initialLocation이 없음
+        markers: (_pickedLocation == null && widget.isSelecting)
             ? null
             : {
                 Marker(
                   markerId: MarkerId('m1'),
-                  position: _pickedLocation,
+
+                  // 'Select on Map' 버튼을 클릭할 경우에는 _pickedLocation 값으로 marker의 position 처리,
+                  // detail의 경로일 경우는 initialLocation 값으로 marker의 position 처리
+                  position: _pickedLocation ??
+                      LatLng(
+                        widget.initialLocation.latitude,
+                        widget.initialLocation.longitude,
+                      ),
                 ),
               },
       ),
