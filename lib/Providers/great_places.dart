@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../model/place.dart';
 import '../helpers/db_helper.dart';
+import '../helpers/location_helper.dart';
 
 class GreatPlaces with ChangeNotifier {
   List<Place> _items = [];
@@ -12,19 +13,35 @@ class GreatPlaces with ChangeNotifier {
     return [..._items];
   }
 
-  void addPlace(String pickedTitle, File pickedImage) {
+  Future<void> addPlace(
+    String pickedTitle,
+    File pickedImage,
+    PlaceLocation placeLocation,
+  ) async {
+    final address = await LocationHelper.getPlaceAddress(
+        placeLocation.latitude, placeLocation.longitude);
+
+    final updatedLocation = PlaceLocation(
+      latitude: placeLocation.latitude,
+      longitude: placeLocation.longitude,
+      address: address,
+    );
+
     final newPlace = Place(
       id: DateTime.now().toString(),
       image: pickedImage,
       title: pickedTitle,
-      location: null,
+      location: updatedLocation,
     );
     _items.add(newPlace);
     notifyListeners();
     DBHelper.insert('user_places', {
       'id': newPlace.id,
       'title': newPlace.title,
-      'image': newPlace.image.path // 로컬 하드 드라이브에 이미지 경로를 저장하려면 .path 가 반드시 필요
+      'image': newPlace.image.path, // 로컬 하드 드라이브에 이미지 경로를 저장하려면 .path 가 반드시 필요
+      'loc_lat': newPlace.location.latitude,
+      'loc_lng': newPlace.location.longitude,
+      'address': newPlace.location.address,
     });
   }
 
@@ -36,7 +53,11 @@ class GreatPlaces with ChangeNotifier {
             id: item['id'],
             title: item['title'],
             image: File(item['image']),
-            location: null,
+            location: PlaceLocation(
+              latitude: item['loc_lat'],
+              longitude: item['loc_lng'],
+              address: item['address'],
+            ),
           ),
         )
         .toList();
